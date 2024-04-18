@@ -13,7 +13,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public final class ExcelFactory {
 
 	public static <T> ExcelExporter makeExcel(List<T> data, Class<T> tClass) {
-		return ClassContainer.from(data, tClass, createSXSSFWorkbook());
+		return ClassContainer.from(data, tClass, createWorkbook(true));
 	}
 
 	public static <T> ExcelExporter makeExcelForXSSFWorkbook(List<T> data, Class<T> tClass) {
@@ -25,11 +25,16 @@ public final class ExcelFactory {
 	 * Workbook Factory Implement Produce
 	 * @return workbook
 	 */
+
+	private static Workbook createWorkbook(boolean isCompressTempFile) {
+		SXSSFWorkbook workbook = new SXSSFWorkbook();
+		workbook.setCompressTempFiles(isCompressTempFile);
+		return workbook;
+	}
+
 	private static Workbook createXSSFWorkbook() {
 		return new XSSFWorkbook();
 	}
-	private static Workbook createSXSSFWorkbook() {
-		return new SXSSFWorkbook();
-	}
+
 
 }
