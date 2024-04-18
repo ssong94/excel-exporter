@@ -18,7 +18,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.util.StringUtils;
 
 @Getter
@@ -30,14 +29,11 @@ public class ClassContainer extends Excel {
 	private final Map<Field, CellStyle> headerFieldCellStyleMap;
 	private final Map<Field, CellStyle> bodyFieldCellStyleMap;
 
-	private static Workbook createWorkbook() {
-		return new SXSSFWorkbook();
-	}
 
-	public static <T> ClassContainer from(List<T> data, Class<T> tClass) {
+
+	public static <T> ClassContainer from(List<T> data, Class<T> tClass, Workbook workbook) {
 
 		validateAnnotation(tClass);
-		Workbook workbook = createWorkbook();
 		Field[] fields = tClass.getDeclaredFields();
 
 		Map<Field, CellStyle> headerStyleMap = createHeaderFieldStyleMap(fields, workbook);

@@ -37,7 +37,7 @@ public abstract class Excel implements ExcelExporter {
 	protected final Workbook workbook;
 
 	abstract void renderHeader(Sheet sheet, int rowStartIndex);
-	abstract <T> void renderBody(Sheet sheet, int startRowIndex, List<T> data, Class<T> tClass);
+	abstract <T> void renderBody(Sheet sheet, int startRowIndex, List<T> data);
 
 
 	static CellStyle getCellStyleAppliedFont(ExcelStyle excelStyle, Workbook workbook) {
