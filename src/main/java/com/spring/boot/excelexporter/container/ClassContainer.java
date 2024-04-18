@@ -5,6 +5,7 @@ import com.spring.boot.excelexporter.meta.ExcelBody;
 import com.spring.boot.excelexporter.meta.ExcelHeader;
 import com.spring.boot.excelexporter.meta.ExcelSheet;
 import com.spring.boot.excelexporter.meta.style.ExcelStyle;
+import com.spring.boot.excelexporter.util.PoiUtil;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
@@ -17,7 +18,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.util.StringUtils;
 
 @Getter
@@ -30,7 +31,7 @@ public class ClassContainer extends Excel {
 	private final Map<Field, CellStyle> bodyFieldCellStyleMap;
 
 	private static Workbook createWorkbook() {
-		return new XSSFWorkbook();
+		return new SXSSFWorkbook();
 	}
 
 	public static <T> ClassContainer from(List<T> data, Class<T> tClass) {
@@ -48,7 +49,7 @@ public class ClassContainer extends Excel {
 				.bodyFieldCellStyleMap(bodyStyleMap)
 				.build();
 
-		Sheet sheet = container.createSheet(container.workbook, tClass);
+		Sheet sheet = createSheet(workbook, tClass);
 		container.renderHeader(sheet, 0);
 		container.renderBody(sheet, 1, data, tClass);
 
@@ -102,7 +103,7 @@ public class ClassContainer extends Excel {
 	}
 
 
-	private Sheet createSheet(Workbook workbook, Class<?> clazz) {
+	protected static Sheet createSheet(Workbook workbook, Class<?> clazz) {
 		ExcelSheet sheet = clazz.getAnnotation(ExcelSheet.class);
 		return workbook.createSheet(sheet.name());
 	}
@@ -116,10 +117,14 @@ public class ClassContainer extends Excel {
 			int index = header.order();
 			String name = header.name();
 			String mergedRegion = header.mergedRegion();
+			float columnWidth = header.columnWidth();
 
 			if(StringUtils.hasText(mergedRegion)) {
 				sheet.addMergedRegion(CellRangeAddress.valueOf(mergedRegion));
 			}
+
+			int width = PoiUtil.calculateWidth(columnWidth);
+			sheet.setColumnWidth(index, width);
 
 			Cell cell = row.createCell(index);
 			cell.setCellStyle(style);
@@ -132,17 +137,15 @@ public class ClassContainer extends Excel {
 	@Override
 	<T> void renderBody(Sheet sheet, int startRowIndex, List<T> dataList, Class<T> tClass) {
 
-		if(dataList == null || dataList.isEmpty()) {
-			return;
-		}
+		if(dataList == null || dataList.isEmpty()) return;
 
 		for (T data : dataList) {
 			Row row = sheet.createRow(startRowIndex++);
-			drawBody(row, data, tClass);
+			drawBody(row, data);
 		}
 	}
 
-	private <T> void drawBody(Row row, Object object, Class<T> tClass) {
+	private <T> void drawBody(Row row, Object object) {
 
 		bodyFieldCellStyleMap.forEach((field, cellStyle) -> {
 			try {
@@ -156,12 +159,12 @@ public class ClassContainer extends Excel {
 
 				Object o = declaredField.get(object);
 				String cellValue = String.valueOf(o);
-				String trimCellValue = cellValue == null ? "" : cellValue.trim();
 
 				Cell cell = row.createCell(cellIndex);
 
 				cell.setCellStyle(cellStyle);
-				cell.setCellValue(trimCellValue);
+				cell.setCellValue(cellValue == null ? "" : cellValue);
+
 
 			} catch (NoSuchFieldException | IllegalAccessException e) {
 				throw new ExcelExporterException(e);
