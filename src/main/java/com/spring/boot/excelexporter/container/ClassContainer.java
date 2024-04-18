@@ -47,9 +47,7 @@ public class ClassContainer extends Excel {
 
 		Sheet sheet = createSheet(workbook, tClass);
 		container.renderHeader(sheet, 0);
-		container.renderBody(sheet, 1, data, tClass);
-
-//		sheet.autoSizeColumn(0);
+		container.renderBody(sheet, 1, data);
 
 		return container;
 	}
@@ -131,7 +129,7 @@ public class ClassContainer extends Excel {
 	}
 
 	@Override
-	<T> void renderBody(Sheet sheet, int startRowIndex, List<T> dataList, Class<T> tClass) {
+	<T> void renderBody(Sheet sheet, int startRowIndex, List<T> dataList) {
 
 		if(dataList == null || dataList.isEmpty()) return;
 
@@ -153,21 +151,20 @@ public class ClassContainer extends Excel {
 				int cellIndex = body.order();
 //				boolean grouping = body.grouping();
 
-				Object o = declaredField.get(object);
-				String cellValue = String.valueOf(o);
-
 				Cell cell = row.createCell(cellIndex);
-
-				cell.setCellStyle(cellStyle);
-				cell.setCellValue(cellValue == null ? "" : cellValue);
+				Object o = declaredField.get(object);
+				renderCellValue(cell, o);
 
 
 			} catch (NoSuchFieldException | IllegalAccessException e) {
 				throw new ExcelExporterException(e);
 			}
-
 		});
-
-
 	}
+
+	private void renderCellValue(Cell cell, Object object) {
+		String cellValue = String.valueOf(object);
+		cell.setCellValue(cellValue == null ? "" : cellValue);
+	}
+
 }
