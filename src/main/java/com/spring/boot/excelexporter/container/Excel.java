@@ -40,24 +40,32 @@ public abstract class Excel implements ExcelExporter {
 	abstract <T> void renderBody(Sheet sheet, int startRowIndex, List<T> data, Class<T> tClass);
 
 
+	static CellStyle getCellStyleAppliedFont(ExcelStyle excelStyle, Workbook workbook) {
+		CellStyle cellStyle = getCellStyle(excelStyle, workbook);
+		Font font = getFont(excelStyle, workbook);
+		cellStyle.setFont(font);
+		return cellStyle;
+	}
 
 
-	protected static CellStyle getCellStyle(ExcelStyle excelStyle, Workbook workbook) {
+	static CellStyle getCellStyle(ExcelStyle excelStyle, Workbook workbook) {
 		HorizontalAlignment horizontalAlignment = excelStyle.horizontalAlign();
 		VerticalAlignment verticalAlignment = excelStyle.verticalAlign();
+		boolean isWrapText = excelStyle.wrapText();
 
 		CellStyle cellStyle = workbook.createCellStyle();
 		cellStyle.setAlignment(horizontalAlignment);
 		cellStyle.setVerticalAlignment(verticalAlignment);
+		cellStyle.setWrapText(isWrapText);
 
 		return cellStyle;
 	}
 
-	protected static Font getFont(ExcelStyle excelStyle, Workbook workbook) {
+	static Font getFont(ExcelStyle excelStyle, Workbook workbook) {
 
 		String fontName = excelStyle.fontName();
 		short fontSize = excelStyle.fontSize();
-		boolean isBold = excelStyle.isFontBold();
+		boolean isBold = excelStyle.bold();
 		HSSFColorPredefined fontColor = excelStyle.fontColor();
 
 		Font font = workbook.createFont();
@@ -107,7 +115,6 @@ public abstract class Excel implements ExcelExporter {
 		} catch (IOException e) {
 			throw new ExcelExporterException(e);
 		}
-
 
 		try(FileOutputStream out = new FileOutputStream(filePath)) {
 			workbook.write(out);

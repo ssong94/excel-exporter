@@ -13,6 +13,6 @@ public @interface ExcelBody {
 	int order();
 	boolean autoSize() default true;
 	boolean grouping() default false;
-	ExcelStyle headerStyle() default @ExcelStyle;
+	ExcelStyle bodyStyle() default @ExcelStyle;
 
 }

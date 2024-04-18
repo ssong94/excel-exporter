@@ -14,8 +14,8 @@ public @interface ExcelHeader {
 	String mergedRegion() default "";
 	ExcelStyle headerStyle() default @ExcelStyle(
 			fontSize = 14,
-			isFontBold = true,
-			isWrapText = true
+			bold = true,
+			wrapText = true
 	);
 
 

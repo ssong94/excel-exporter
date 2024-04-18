@@ -13,12 +13,11 @@ import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.util.StringUtils;
 
 @Getter
@@ -31,7 +30,7 @@ public class ClassContainer extends Excel {
 	private final Map<Field, CellStyle> bodyFieldCellStyleMap;
 
 	private static Workbook createWorkbook() {
-		return new SXSSFWorkbook();
+		return new XSSFWorkbook();
 	}
 
 	public static <T> ClassContainer from(List<T> data, Class<T> tClass) {
@@ -52,14 +51,12 @@ public class ClassContainer extends Excel {
 		Sheet sheet = container.createSheet(container.workbook, tClass);
 		container.renderHeader(sheet, 0);
 		container.renderBody(sheet, 1, data, tClass);
-		container.applyOption(sheet);
+
+//		sheet.autoSizeColumn(0);
 
 		return container;
 	}
 
-	private void applyOption(Sheet sheet) {
-//		sheet.autoSizeColumn(1);
-	}
 
 
 	private static void validateAnnotation(Class<?> clazz) {
@@ -78,14 +75,11 @@ public class ClassContainer extends Excel {
 				ExcelHeader annotation = field.getAnnotation(ExcelHeader.class);
 				ExcelStyle excelStyle = annotation.headerStyle();
 
-				CellStyle cellStyle = getCellStyle(excelStyle, workbook);
-				Font font = getFont(excelStyle, workbook);
-				cellStyle.setFont(font);
+				CellStyle cellStyle = getCellStyleAppliedFont(excelStyle, workbook);
 
 				resultMap.put(field, cellStyle);
 			}
 		}
-
 
 		return resultMap;
 	}
@@ -98,14 +92,11 @@ public class ClassContainer extends Excel {
 				ExcelBody annotation = field.getAnnotation(ExcelBody.class);
 				ExcelStyle excelStyle = annotation.bodyStyle();
 
-				CellStyle cellStyle = getCellStyle(excelStyle, workbook);
-				Font font = getFont(excelStyle, workbook);
-				cellStyle.setFont(font);
+				CellStyle cellStyle = getCellStyleAppliedFont(excelStyle, workbook);
 
 				resultMap.put(field, cellStyle);
 			}
 		}
-
 
 		return resultMap;
 	}
@@ -145,7 +136,6 @@ public class ClassContainer extends Excel {
 			return;
 		}
 
-		int cellIndex = 0;
 		for (T data : dataList) {
 			Row row = sheet.createRow(startRowIndex++);
 			drawBody(row, data, tClass);
@@ -162,14 +152,15 @@ public class ClassContainer extends Excel {
 				ExcelBody body = field.getAnnotation(ExcelBody.class);
 
 				int cellIndex = body.order();
-				boolean grouping = body.grouping();
+//				boolean grouping = body.grouping();
 
 				Object o = declaredField.get(object);
-				String s = String.valueOf(o);
+				String cellValue = String.valueOf(o);
 
 				Cell cell = row.createCell(cellIndex);
+
 				cell.setCellStyle(cellStyle);
-				cell.setCellValue(s);
+				cell.setCellValue(cellValue);
 
 			} catch (NoSuchFieldException | IllegalAccessException e) {
 				throw new ExcelExporterException(e);
