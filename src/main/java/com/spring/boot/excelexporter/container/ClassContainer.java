@@ -156,11 +156,12 @@ public class ClassContainer extends Excel {
 
 				Object o = declaredField.get(object);
 				String cellValue = String.valueOf(o);
+				String trimCellValue = cellValue == null ? "" : cellValue.trim();
 
 				Cell cell = row.createCell(cellIndex);
 
 				cell.setCellStyle(cellStyle);
-				cell.setCellValue(cellValue);
+				cell.setCellValue(trimCellValue);
 
 			} catch (NoSuchFieldException | IllegalAccessException e) {
 				throw new ExcelExporterException(e);
