@@ -7,11 +7,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -27,7 +27,6 @@ public abstract class Excel implements ExcelExporter {
 
 	private final static String CONTENT_TYPE = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
 	private final static String CONTENT_DISPOSITION = HttpHeaders.CONTENT_DISPOSITION;
-	private final static String HEADER = "\"attachment; filename=%s.xlsx\"";
 
 	protected final Workbook workbook;
 	private CreationHelper createHelper;
@@ -49,11 +48,9 @@ public abstract class Excel implements ExcelExporter {
 	@Override
 	public void export(HttpServletResponse response, String fileName) {
 
-		String formatFileName = String.format(HEADER, fileName);
-
-		String encodeFileName = URLEncoder.encode(formatFileName, StandardCharsets.UTF_8);
+		String encodeFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
 		response.setContentType(CONTENT_TYPE);
-		response.setHeader(CONTENT_DISPOSITION, encodeFileName + ";");
+		response.setHeader(CONTENT_DISPOSITION, "attachment; filename=" + encodeFileName + ".xlsx;");
 
 		try (ServletOutputStream out = response.getOutputStream()) {
 			workbook.write(out);
@@ -73,7 +70,7 @@ public abstract class Excel implements ExcelExporter {
 	public boolean save(String filePath) {
 		try {
 			Path path = Path.of(filePath);
-			FileUtils.createParentDirectories(path.getParent().toFile());
+			Files.createDirectories(path.getParent());
 		} catch (IOException e) {
 			throw new ExcelExporterException(e);
 		}
