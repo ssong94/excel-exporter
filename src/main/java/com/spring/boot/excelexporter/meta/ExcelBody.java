@@ -16,7 +16,7 @@ import org.apache.poi.ss.usermodel.HorizontalAlignment;
 public @interface ExcelBody {
 
 	int order();
-
+	String dataFormat() default "";
 
 	/* Custom 공통 영역 */
 	ExcelAlignmentStyle alignmentStyle() default @ExcelAlignmentStyle(

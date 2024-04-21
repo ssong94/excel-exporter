@@ -10,7 +10,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import org.apache.poi.hssf.util.HSSFColor.HSSFColorPredefined;
-import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.IndexedColors;
 
 @Target(ElementType.FIELD)
@@ -19,7 +18,7 @@ public @interface ExcelHeader {
 	String name();
 	int order();
 //	String mergedRegion() default "";
-	float columnWidth() default 20.10f;
+	float width() default 20.10f;
 
 
 	/* Custom 공통 영역 */
@@ -31,10 +30,9 @@ public @interface ExcelHeader {
 	ExcelBorderStyle borderStyle() default @ExcelBorderStyle;
 	ExcelFontStyle fontStyle() default @ExcelFontStyle(
 			fontSize = 14,
-			fontColor = HSSFColorPredefined.RED,
+			fontColor = HSSFColorPredefined.BLUE_GREY,
 			bold = true,
-			fontName = "맑은 고딕",
-			underline = Font.U_SINGLE
+			fontName = "맑은 고딕"
 	);
 	ExcelCellStyle cellStyle() default @ExcelCellStyle(
 			wrapText = true

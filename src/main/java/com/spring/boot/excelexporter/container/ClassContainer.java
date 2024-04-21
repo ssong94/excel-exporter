@@ -9,6 +9,8 @@ import com.spring.boot.excelexporter.meta.ExcelHeader;
 import com.spring.boot.excelexporter.meta.ExcelSheet;
 import com.spring.boot.excelexporter.util.PoiUtil;
 import java.lang.reflect.Field;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +21,7 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.util.StringUtils;
 
 @Getter
 @SuperBuilder
@@ -108,7 +111,7 @@ public class ClassContainer extends Excel {
 			int index = header.order();
 			String name = header.name();
 //			String mergedRegion = header.mergedRegion();
-			float columnWidth = header.columnWidth();
+			float columnWidth = header.width();
 
 //			if(StringUtils.hasText(mergedRegion)) {
 //				sheet.addMergedRegion(CellRangeAddress.valueOf(mergedRegion));
@@ -153,6 +156,13 @@ public class ClassContainer extends Excel {
 				cell.setCellStyle(cellStyle);
 				renderCellValue(cell, o);
 
+				String pattern = body.dataFormat();
+				if(StringUtils.hasText(pattern)) {
+					short idx = formatPattern(pattern);
+					cellStyle.setDataFormat(idx);
+					cellStyle.setShrinkToFit(true);
+				}
+
 			} catch (NoSuchFieldException | IllegalAccessException e) {
 				throw new ExcelExporterException(e);
 			}
@@ -163,15 +173,23 @@ public class ClassContainer extends Excel {
 
 		if(object == null) {
 			cell.setCellValue("");
+			return;
 		}
 
+
 		switch (object) {
+			case String s -> cell.setCellValue((String) s);
 			case Integer i -> cell.setCellValue((Integer) i);
 			case Long l -> cell.setCellValue((Long) l);
-			case String s -> cell.setCellValue((String) s);
+			case Float f -> cell.setCellValue((float) f);
+			case Double d -> cell.setCellValue((double) d);
+			case LocalDateTime ldt -> cell.setCellValue((LocalDateTime) ldt);
+			case LocalDate ld -> cell.setCellValue((LocalDate) ld);
 			case Boolean b -> cell.setCellValue((Boolean) b);
 			default -> cell.setCellValue(String.valueOf(object) );
 		}
+
 	}
+
 
 }

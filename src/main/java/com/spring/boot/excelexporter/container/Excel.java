@@ -12,6 +12,8 @@ import java.util.List;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -28,7 +30,7 @@ public abstract class Excel implements ExcelExporter {
 	private final static String HEADER = "\"attachment; filename=%s.xlsx\"";
 
 	protected final Workbook workbook;
-
+	private CreationHelper createHelper;
 
 	abstract Sheet renderSheet(Workbook workbook, Class<?> clazz);
 
@@ -90,5 +92,12 @@ public abstract class Excel implements ExcelExporter {
 		return true;
 	}
 
+	protected short formatPattern(String formatPattern) {
+		if(createHelper == null) {
+			createHelper = workbook.getCreationHelper();
+		}
+		DataFormat dataFormat = createHelper.createDataFormat();
+		return dataFormat.getFormat(formatPattern);
+	}
 
 }
