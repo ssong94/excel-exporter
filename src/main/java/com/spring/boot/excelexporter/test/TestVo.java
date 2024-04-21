@@ -57,6 +57,4 @@ public class TestVo {
 	@ExcelHeader(name = "DateTime", order = 6, width = 10.00f)
 	@ExcelBody(order = 6, dataFormat = "$#,##0;[Blue]-$#,##0")
 	private int won;
-
-
 }
