@@ -25,15 +25,14 @@ import org.springframework.util.StringUtils;
 
 @Getter
 @SuperBuilder
-public class ClassContainer extends Excel {
+public class OneSheetExcel extends Excel {
 
 	private static final int STANDARD_NUMBER = 1;
 
 	private final Map<Field, CellStyle> headerFieldCellStyleMap;
 	private final Map<Field, CellStyle> bodyFieldCellStyleMap;
 
-
-	public static <T> ClassContainer from(List<T> data, Class<T> tClass, Workbook workbook) {
+	public static <T> OneSheetExcel from(List<T> data, Class<T> tClass, Workbook workbook) {
 
 		validateAnnotation(tClass);
 		Field[] fields = tClass.getDeclaredFields();
@@ -41,19 +40,22 @@ public class ClassContainer extends Excel {
 		Map<Field, CellStyle> headerStyleMap = createHeaderFieldStyleMap(fields, workbook);
 		Map<Field, CellStyle> bodyStyleMap = createBodyFieldStyleMap(fields, workbook);
 
-		ClassContainer container = ClassContainer.builder()
+		OneSheetExcel oneSheetExcel = OneSheetExcel.builder()
 				.workbook(workbook)
 				.headerFieldCellStyleMap(headerStyleMap)
 				.bodyFieldCellStyleMap(bodyStyleMap)
 				.build();
 
-		Sheet sheet = container.renderSheet(workbook, tClass);
-		container.renderHeader(sheet, 0);
-		container.renderBody(sheet, 1, data);
+		oneSheetExcel.make(data, tClass);
 
-		return container;
+		return oneSheetExcel;
 	}
 
+	private <T> void make(List<T> data, Class<T> tClass) {
+		Sheet sheet = renderSheet(workbook, tClass);
+		renderHeader(sheet, 0);
+		renderBody(sheet, 1, data);
+	}
 
 	private static void validateAnnotation(Class<?> clazz) {
 		boolean hasAnnotation = clazz.isAnnotationPresent(ExcelSheet.class);
