@@ -17,7 +17,7 @@ class ExcelExportHelperApplicationTests {
 
 		TestVo testVo = new TestVo(1, "data1", "data2");
 		TestVo testVo1 = new TestVo(2, "data3", "data4");
-		TestVo testVo2 = new TestVo(3, "data5", "data6");
+		TestVo testVo2 = new TestVo(3, "데이터가 너무 길면", "data5");
 		List<TestVo> testVo3 = List.of(testVo, testVo1, testVo2);
 
 
