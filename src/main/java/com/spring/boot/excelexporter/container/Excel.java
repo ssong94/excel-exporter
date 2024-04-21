@@ -1,7 +1,6 @@
 package com.spring.boot.excelexporter.container;
 
 import com.spring.boot.excelexporter.exception.ExcelExporterException;
-import com.spring.boot.excelexporter.meta.style.ExcelStyle;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.FileOutputStream;
@@ -13,17 +12,11 @@ import java.util.List;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.apache.poi.hssf.util.HSSFColor.HSSFColorPredefined;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.MimeTypeUtils;
-
 
 
 @Slf4j
@@ -36,46 +29,13 @@ public abstract class Excel implements ExcelExporter {
 
 	protected final Workbook workbook;
 
+
+	abstract Sheet renderSheet(Workbook workbook, Class<?> clazz);
+
 	abstract void renderHeader(Sheet sheet, int rowStartIndex);
+
 	abstract <T> void renderBody(Sheet sheet, int startRowIndex, List<T> data);
 
-
-	static CellStyle getCellStyleAppliedFont(ExcelStyle excelStyle, Workbook workbook) {
-		CellStyle cellStyle = getCellStyle(excelStyle, workbook);
-		Font font = getFont(excelStyle, workbook);
-		cellStyle.setFont(font);
-		return cellStyle;
-	}
-
-
-	static CellStyle getCellStyle(ExcelStyle excelStyle, Workbook workbook) {
-		HorizontalAlignment horizontalAlignment = excelStyle.horizontalAlign();
-		VerticalAlignment verticalAlignment = excelStyle.verticalAlign();
-		boolean isWrapText = excelStyle.wrapText();
-
-		CellStyle cellStyle = workbook.createCellStyle();
-		cellStyle.setAlignment(horizontalAlignment);
-		cellStyle.setVerticalAlignment(verticalAlignment);
-		cellStyle.setWrapText(isWrapText);
-
-		return cellStyle;
-	}
-
-	static Font getFont(ExcelStyle excelStyle, Workbook workbook) {
-
-		String fontName = excelStyle.fontName();
-		short fontSize = excelStyle.fontSize();
-		boolean isBold = excelStyle.bold();
-		HSSFColorPredefined fontColor = excelStyle.fontColor();
-
-		Font font = workbook.createFont();
-		font.setFontName(fontName);
-		font.setColor(fontColor.getIndex());
-		font.setBold(isBold);
-		font.setFontHeightInPoints(fontSize);
-
-		return font;
-	}
 
 
 	protected void mergeRegion(Sheet sheet, String region) {
@@ -116,12 +76,17 @@ public abstract class Excel implements ExcelExporter {
 			throw new ExcelExporterException(e);
 		}
 
-		try(FileOutputStream out = new FileOutputStream(filePath)) {
+		try (FileOutputStream out = new FileOutputStream(filePath)) {
 			workbook.write(out);
 		} catch (IOException e) {
 			throw new ExcelExporterException(e);
+		} finally {
+			try {
+				workbook.close();
+			} catch (IOException e) {
+				log.error(e.getMessage());
+			}
 		}
-
 		return true;
 	}
 

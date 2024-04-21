@@ -1,10 +1,12 @@
 package com.spring.boot.excelexporter.container;
 
+import static com.spring.boot.excelexporter.util.StyleUtil.getBodyCellStyle;
+import static com.spring.boot.excelexporter.util.StyleUtil.getHeaderCellStyle;
+
 import com.spring.boot.excelexporter.exception.ExcelExporterException;
 import com.spring.boot.excelexporter.meta.ExcelBody;
 import com.spring.boot.excelexporter.meta.ExcelHeader;
 import com.spring.boot.excelexporter.meta.ExcelSheet;
-import com.spring.boot.excelexporter.meta.style.ExcelStyle;
 import com.spring.boot.excelexporter.util.PoiUtil;
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -17,8 +19,6 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.util.CellRangeAddress;
-import org.springframework.util.StringUtils;
 
 @Getter
 @SuperBuilder
@@ -28,7 +28,6 @@ public class ClassContainer extends Excel {
 
 	private final Map<Field, CellStyle> headerFieldCellStyleMap;
 	private final Map<Field, CellStyle> bodyFieldCellStyleMap;
-
 
 
 	public static <T> ClassContainer from(List<T> data, Class<T> tClass, Workbook workbook) {
@@ -45,13 +44,12 @@ public class ClassContainer extends Excel {
 				.bodyFieldCellStyleMap(bodyStyleMap)
 				.build();
 
-		Sheet sheet = createSheet(workbook, tClass);
+		Sheet sheet = container.renderSheet(workbook, tClass);
 		container.renderHeader(sheet, 0);
 		container.renderBody(sheet, 1, data);
 
 		return container;
 	}
-
 
 
 	private static void validateAnnotation(Class<?> clazz) {
@@ -68,9 +66,8 @@ public class ClassContainer extends Excel {
 			if(field.isAnnotationPresent(ExcelHeader.class)) {
 
 				ExcelHeader annotation = field.getAnnotation(ExcelHeader.class);
-				ExcelStyle excelStyle = annotation.headerStyle();
 
-				CellStyle cellStyle = getCellStyleAppliedFont(excelStyle, workbook);
+				CellStyle cellStyle = getHeaderCellStyle(annotation, workbook);
 
 				resultMap.put(field, cellStyle);
 			}
@@ -85,9 +82,8 @@ public class ClassContainer extends Excel {
 			if(field.isAnnotationPresent(ExcelBody.class)) {
 
 				ExcelBody annotation = field.getAnnotation(ExcelBody.class);
-				ExcelStyle excelStyle = annotation.bodyStyle();
 
-				CellStyle cellStyle = getCellStyleAppliedFont(excelStyle, workbook);
+				CellStyle cellStyle = getBodyCellStyle(annotation, workbook);
 
 				resultMap.put(field, cellStyle);
 			}
@@ -97,7 +93,8 @@ public class ClassContainer extends Excel {
 	}
 
 
-	protected static Sheet createSheet(Workbook workbook, Class<?> clazz) {
+	@Override
+	Sheet renderSheet(Workbook workbook, Class<?> clazz) {
 		ExcelSheet sheet = clazz.getAnnotation(ExcelSheet.class);
 		return workbook.createSheet(sheet.name());
 	}
@@ -110,12 +107,12 @@ public class ClassContainer extends Excel {
 			ExcelHeader header = field.getAnnotation(ExcelHeader.class);
 			int index = header.order();
 			String name = header.name();
-			String mergedRegion = header.mergedRegion();
+//			String mergedRegion = header.mergedRegion();
 			float columnWidth = header.columnWidth();
 
-			if(StringUtils.hasText(mergedRegion)) {
-				sheet.addMergedRegion(CellRangeAddress.valueOf(mergedRegion));
-			}
+//			if(StringUtils.hasText(mergedRegion)) {
+//				sheet.addMergedRegion(CellRangeAddress.valueOf(mergedRegion));
+//			}
 
 			int width = PoiUtil.calculateWidth(columnWidth);
 			sheet.setColumnWidth(index, width);
@@ -153,8 +150,8 @@ public class ClassContainer extends Excel {
 
 				Cell cell = row.createCell(cellIndex);
 				Object o = declaredField.get(object);
+				cell.setCellStyle(cellStyle);
 				renderCellValue(cell, o);
-
 
 			} catch (NoSuchFieldException | IllegalAccessException e) {
 				throw new ExcelExporterException(e);
@@ -163,8 +160,18 @@ public class ClassContainer extends Excel {
 	}
 
 	private void renderCellValue(Cell cell, Object object) {
-		String cellValue = String.valueOf(object);
-		cell.setCellValue(cellValue == null ? "" : cellValue);
+
+		if(object == null) {
+			cell.setCellValue("");
+		}
+
+		switch (object) {
+			case Integer i -> cell.setCellValue((Integer) i);
+			case Long l -> cell.setCellValue((Long) l);
+			case String s -> cell.setCellValue((String) s);
+			case Boolean b -> cell.setCellValue((Boolean) b);
+			default -> cell.setCellValue(String.valueOf(object) );
+		}
 	}
 
 }

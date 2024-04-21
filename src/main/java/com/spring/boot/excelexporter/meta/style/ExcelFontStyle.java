@@ -5,21 +5,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import org.apache.poi.hssf.util.HSSFColor.HSSFColorPredefined;
-import org.apache.poi.ss.usermodel.HorizontalAlignment;
-import org.apache.poi.ss.usermodel.VerticalAlignment;
+import org.apache.poi.ss.usermodel.Font;
 
 @Target(ElementType.ANNOTATION_TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ExcelStyle {
-
-	boolean wrapText() default false;
+public @interface ExcelFontStyle {
 	String fontName() default "나눔 고딕";
-	short fontSize() default 11;
 	boolean bold() default false;
+	byte underline() default Font.U_NONE;
 	HSSFColorPredefined fontColor() default HSSFColorPredefined.BLACK;
-	HorizontalAlignment horizontalAlign() default HorizontalAlignment.CENTER;
-	VerticalAlignment verticalAlign() default VerticalAlignment.CENTER;
-
-
-
+	short fontSize() default 11;
 }
