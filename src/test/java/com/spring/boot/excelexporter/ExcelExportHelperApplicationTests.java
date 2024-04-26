@@ -10,9 +10,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -56,10 +58,21 @@ class ExcelExportHelperApplicationTests {
 		int maxSize = 100 * 1024 * 1024;
 		int minSize = 10 * 1024 * 1024;
 
+		LocalDate from = LocalDate.of(2016, 1, 1);
+		LocalDate to = LocalDate.now();
+
 		List<TestVo> list = new ArrayList<>();
 
 		for (int i=0; i< 1000000; i++) {
-			TestVo testVo = new TestVo(random.nextInt(), "value" + i, Math.random() , LocalDate.now(), LocalDateTime.now(), i + "value" , random.nextInt() / 100);
+
+			long days = from.until(to, ChronoUnit.DAYS);
+			long randomDays = ThreadLocalRandom.current().nextLong(days + 1);
+			LocalDate randomDate = from.plusDays(randomDays);
+
+			int randomSeconds = new Random().nextInt(3600 * 24);
+			LocalDateTime anyTime = LocalDateTime.now().minusSeconds(randomSeconds);
+
+			TestVo testVo = new TestVo(random.nextInt(), "value" + i, Math.random() , randomDate, anyTime, i + "value" , random.nextInt() / 100);
 			list.add(testVo);
 		}
 
