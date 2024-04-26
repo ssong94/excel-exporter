@@ -5,6 +5,7 @@ import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -17,6 +18,7 @@ import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.MimeTypeUtils;
 
@@ -52,16 +54,11 @@ public abstract class Excel implements ExcelExporter {
 		response.setContentType(CONTENT_TYPE);
 		response.setHeader(CONTENT_DISPOSITION, "attachment; filename=" + encodeFileName + ".xlsx;");
 
-		try (ServletOutputStream out = response.getOutputStream()) {
-			workbook.write(out);
-		} catch (IOException ex) {
-			throw new RuntimeException("Failed Excel Export", ex);
-		} finally {
-			try {
-				workbook.close();
-			} catch (IOException e) {
-				log.error(e.getMessage());
-			}
+		try {
+			ServletOutputStream out = response.getOutputStream();
+			write(out);
+		} catch (IOException e) {
+			throw new ExcelExporterException(e);
 		}
 	}
 
@@ -71,22 +68,30 @@ public abstract class Excel implements ExcelExporter {
 		try {
 			Path path = Path.of(filePath);
 			Files.createDirectories(path.getParent());
+			FileOutputStream out = new FileOutputStream(filePath);
+			write(out);
 		} catch (IOException e) {
 			throw new ExcelExporterException(e);
 		}
 
-		try (FileOutputStream out = new FileOutputStream(filePath)) {
-			workbook.write(out);
-		} catch (IOException e) {
-			throw new ExcelExporterException(e);
+		return true;
+	}
+
+	private void write(OutputStream outputStream) {
+		try (outputStream) {
+			workbook.write(outputStream);
+		} catch (IOException ex) {
+			throw new RuntimeException("Failed Excel Export", ex);
 		} finally {
 			try {
 				workbook.close();
+				if(workbook instanceof SXSSFWorkbook) {
+					((SXSSFWorkbook) workbook).dispose();
+				}
 			} catch (IOException e) {
 				log.error(e.getMessage());
 			}
 		}
-		return true;
 	}
 
 	protected short formatPattern(String formatPattern) {
