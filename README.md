@@ -1,17 +1,18 @@
 # Simple Excel Download Module (Object to Excel)
 
 ---
+**엑셀 리포트 생성 모듈**
 
-객체 -> Excel 다운로드를 지원하는 간단한 자바 모듈입니다.
+이 모듈은 Java 환경에서 객체를 엑셀 파일로 변환해주는 간편한 기능을 제공합니다.
 
-Java 환경에서 익숙한 `@annotation` 기반으로 설정할 수 있도록 개발하였습니다.
+Java 환경에서 익숙한 `@annotation` 기반으로 설정할 수 있도록 개발되었습니다.
 
-간단하지만 완벽하게 컬럼마다 폰트 위치, 배경, 테두리, 폰트, 서식 등 커스터마이징 할 수 있습니다.
+사용자는 컬럼마다 폰트, 배경, 테두리, 서식 등 자유롭게 커스터마이징 할 수 있습니다.
 
-대용량 데이터를 처리하기 위해 streaming 방식을 채택했습니다.
-(Streaming 방식이 필요 없으면 Factory 객체에서 구현체만 바꿔주면 됩니다.)
+또한, 대용량 데이터를 처리하기 위해 streaming 방식을 채택하여 빠르고 효율적인 결과를 출력합니다.
 
-현재는 단일 Sheet만 지원합니다.
+현재는 단일 Sheet만 지원하지만, 편의성을 위해 다중 Sheet에 대한 지원도 고려하고 있습니다.
+
 
 ## 개발 환경
 
@@ -106,12 +107,13 @@ public class TestVo {
 
 폰트 위치, 배경, 테두리, 폰트, 서식 등 다양한 어노테이션을 지원합니다.
 
-dataFormat 을 통해 더욱 다양한 포매팅 및 고급진 엑셀 결과를 출력할 수 있습니다.
+dataFormat 을 통해 필드에 맞는 서식을 적용해서 숫자, 통화, 회계, 날짜, 백분율, 시간 등 원하는 서식 옵션을 지정해서 
+더욱 고급진 엑셀 결과를 출력해 보세요.
 
 [Data Formatter 사용방법](https://poi.apache.org/apidocs/dev/org/apache/poi/ss/usermodel/DataFormatter.html)
 을 참고해 주세요. (옵션)
 
-![결과](src/main/resources/image/result.png)
+![결과](src/main/resources/image/excel-result.png)
 
 
 
