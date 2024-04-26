@@ -10,7 +10,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
@@ -42,5 +46,29 @@ class ExcelExportHelperApplicationTests {
 		excel.save(path);
 
 		assertTrue(Files.exists(Path.of(path)));
+	}
+
+
+	@DisplayName("100만건 테스트")
+	@Test
+	void doBigDataExportTest() throws IOException {
+		Random random = new Random();
+		int maxSize = 100 * 1024 * 1024;
+		int minSize = 10 * 1024 * 1024;
+
+		List<TestVo> list = new ArrayList<>();
+
+		for (int i=0; i< 1000000; i++) {
+			TestVo testVo = new TestVo(random.nextInt(), "value" + i, Math.random() , LocalDate.now(), LocalDateTime.now(), i + "value" , random.nextInt() / 100);
+			list.add(testVo);
+		}
+
+		ExcelExporter excel = ExcelFactory.makeExcel(list, TestVo.class);
+		excel.save(path);
+
+		assertTrue(Files.exists(Path.of(path)));
+		assertTrue(Files.size(Path.of(path)) < maxSize);
+		assertTrue(Files.size(Path.of(path)) > minSize);
+
 	}
 }
