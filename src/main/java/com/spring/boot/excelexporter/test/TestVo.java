@@ -22,7 +22,7 @@ public class TestVo {
 	@ExcelBody(order = 0, dataFormat = "0;[Red]-0")
 	private int number;
 
-	@ExcelHeader(name = "default", order = 1)
+	@ExcelHeader(name = "string-value", order = 1)
 	@ExcelBody(order = 1)
 	private String value;
 
@@ -30,11 +30,11 @@ public class TestVo {
 	@ExcelBody(order = 2, dataFormat = "0%;[Red]-0")
 	private double percent;
 
-	@ExcelHeader(name = "Date", order = 3)
+	@ExcelHeader(name = "random-date", order = 3)
 	@ExcelBody(order = 3, dataFormat = "yy-m-d")
 	private LocalDate localDate;
 
-	@ExcelHeader(name = "DateTime", order = 4, width = 10.00f)
+	@ExcelHeader(name = "random-date-time", order = 4, width = 10.00f)
 	@ExcelBody(order = 4, dataFormat = "yy.m.d h:mm",
 			alignmentStyle = @ExcelAlignmentStyle(
 					horizontalAlign = HorizontalAlignment.LEFT
@@ -42,7 +42,7 @@ public class TestVo {
 	)
 	private LocalDateTime localDateTime;
 
-	@ExcelHeader(name = "Custom", order = 5,
+	@ExcelHeader(name = "custom-header-value", order = 5,
 	backgroundStyle = @ExcelBackgroundStyle(
 			color = IndexedColors.BROWN),
 			fontStyle = @ExcelFontStyle(
@@ -54,7 +54,7 @@ public class TestVo {
 	@ExcelBody(order = 5, dataFormat = "yy/m/d h:mm")
 	private String customValue;
 
-	@ExcelHeader(name = "DateTime", order = 6, width = 10.00f)
+	@ExcelHeader(name = "price", order = 6, width = 10.00f)
 	@ExcelBody(order = 6, dataFormat = "$#,##0;[Blue]-$#,##0")
 	private int won;
 }
