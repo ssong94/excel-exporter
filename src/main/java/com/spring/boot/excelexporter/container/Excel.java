@@ -11,7 +11,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.DataFormat;
@@ -24,7 +23,6 @@ import org.springframework.util.MimeTypeUtils;
 
 
 @Slf4j
-@SuperBuilder
 public abstract class Excel implements ExcelExporter {
 
 	private final static String CONTENT_TYPE = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
@@ -40,6 +38,9 @@ public abstract class Excel implements ExcelExporter {
 	abstract <T> void renderBody(Sheet sheet, int startRowIndex, List<T> data);
 
 
+	protected Excel(Workbook workbook) {
+		this.workbook = workbook;
+	}
 
 	protected void mergeRegion(Sheet sheet, String region) {
 		CellRangeAddress cellAddresses = CellRangeAddress.valueOf(region);

@@ -13,11 +13,11 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public final class ExcelFactory {
 
 	public static <T> ExcelExporter makeExcel(List<T> data, Class<T> tClass) {
-		return OneSheetExcel.from(data, tClass, createWorkbook(true));
+		return OneSheetExcel.of(data, tClass, createWorkbook(true));
 	}
 
 	public static <T> ExcelExporter makeExcelForXSSFWorkbook(List<T> data, Class<T> tClass) {
-		return OneSheetExcel.from(data, tClass, createXSSFWorkbook());
+		return OneSheetExcel.of(data, tClass, createXSSFWorkbook());
 	}
 
 

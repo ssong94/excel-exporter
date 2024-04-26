@@ -14,8 +14,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.Getter;
-import lombok.experimental.SuperBuilder;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
@@ -23,8 +21,6 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.util.StringUtils;
 
-@Getter
-@SuperBuilder
 public class OneSheetExcel extends Excel {
 
 	private static final int STANDARD_NUMBER = 1;
@@ -32,23 +28,17 @@ public class OneSheetExcel extends Excel {
 	private final Map<Field, CellStyle> headerFieldCellStyleMap;
 	private final Map<Field, CellStyle> bodyFieldCellStyleMap;
 
-	public static <T> OneSheetExcel from(List<T> data, Class<T> tClass, Workbook workbook) {
+	public static <T> OneSheetExcel of(List<T> data, Class<T> tClass, Workbook workbook) {
+		return new OneSheetExcel(data, tClass, workbook);
+	}
 
+	private <T> OneSheetExcel(List<T> data, Class<T> tClass, Workbook workbook) {
+		super(workbook);
 		validateAnnotation(tClass);
 		Field[] fields = tClass.getDeclaredFields();
-
-		Map<Field, CellStyle> headerStyleMap = createHeaderFieldStyleMap(fields, workbook);
-		Map<Field, CellStyle> bodyStyleMap = createBodyFieldStyleMap(fields, workbook);
-
-		OneSheetExcel oneSheetExcel = OneSheetExcel.builder()
-				.workbook(workbook)
-				.headerFieldCellStyleMap(headerStyleMap)
-				.bodyFieldCellStyleMap(bodyStyleMap)
-				.build();
-
-		oneSheetExcel.make(data, tClass);
-
-		return oneSheetExcel;
+		headerFieldCellStyleMap = createHeaderFieldStyleMap(fields, workbook);
+		bodyFieldCellStyleMap = createBodyFieldStyleMap(fields, workbook);
+		make(data, tClass) ;
 	}
 
 	private <T> void make(List<T> data, Class<T> tClass) {
@@ -65,7 +55,7 @@ public class OneSheetExcel extends Excel {
 		}
 	}
 
-	private static Map<Field, CellStyle> createHeaderFieldStyleMap(Field[] fields, Workbook workbook) {
+	private Map<Field, CellStyle> createHeaderFieldStyleMap(Field[] fields, Workbook workbook) {
 		Map<Field, CellStyle> resultMap = new HashMap<>();
 		for (Field field : fields) {
 			if(field.isAnnotationPresent(ExcelHeader.class)) {
@@ -81,7 +71,7 @@ public class OneSheetExcel extends Excel {
 		return resultMap;
 	}
 
-	private static Map<Field, CellStyle> createBodyFieldStyleMap(Field[] fields, Workbook workbook) {
+	private Map<Field, CellStyle> createBodyFieldStyleMap(Field[] fields, Workbook workbook) {
 		Map<Field, CellStyle> resultMap = new HashMap<>();
 		for (Field field : fields) {
 			if(field.isAnnotationPresent(ExcelBody.class)) {
