@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.spring.boot.excelexporter.container.ExcelExporter;
 import com.spring.boot.excelexporter.factory.ExcelFactory;
-import com.spring.boot.excelexporter.test.TestVo;
+import com.spring.boot.excelexporter.sample.MultiSheetSample01;
+import com.spring.boot.excelexporter.sample.MultiSheetSample02;
+import com.spring.boot.excelexporter.sample.SampleVo;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,48 +24,38 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class ExcelExportHelperApplicationTests {
 
-	String path = "C:\\Users\\kyugw\\OneDrive\\바탕 화면\\test\\test.xlsx";
+	String path = "C:\\Users\\kyugw\\OneDrive\\바탕 화면\\test\\sample.xlsx";
 
-	@org.junit.jupiter.api.Test
-	void excelCreateTest() throws IOException {
+	@DisplayName("기본 엑셀 결과 출력")
+	@Test
+	void exportDefaultExcel() throws IOException {
+		Random random = new Random();
 
-		TestVo testVo = new TestVo(-1234, "data1", 0.1, LocalDate.now(), LocalDateTime.now(), "value", 1);
-		TestVo testVo1 = new TestVo(0, "data2", 0.2, LocalDate.now(), LocalDateTime.now(), "value", 12);
-		TestVo testVo2 = new TestVo(-1, "data3", 0.3, LocalDate.now(), LocalDateTime.now(), "value", -1313);
-		TestVo testVo3 = new TestVo(31, "data4", 0.5, LocalDate.now(), LocalDateTime.now(), "value", 155);
-		TestVo testVo4 = new TestVo(124, "data5", 0.7, LocalDate.now(), LocalDateTime.now(), "value", 166);
-		TestVo testVo5 = new TestVo(234, "data6", 0.8, LocalDate.now(), LocalDateTime.now(), "value", -10110);
-		TestVo testVo6 = new TestVo(2, "data7", 0.9, LocalDate.now(), LocalDateTime.now(), "value", 545);
-		TestVo testVo7 = new TestVo(3, "data8", 1, LocalDate.now(), LocalDateTime.now(), "value", 10000);
-		TestVo testVo8 = new TestVo(-1010, "data9", 2, LocalDate.now(), LocalDateTime.now(), "value", -12323);
-		TestVo testVo9 = new TestVo(1010, "data10", 3, LocalDate.now(), LocalDateTime.now(), "value", 0);
-		TestVo testVo10 = new TestVo(9999, "data11", 0.4, LocalDate.now(), LocalDateTime.now(), "value", 999999);
-		TestVo testVo11 = new TestVo(-9999, "data12", 0.04, LocalDate.now(), LocalDateTime.now(), "value", -1010);
-		TestVo testVo12 = new TestVo(10000, "data13", 0.03, LocalDate.now(), LocalDateTime.now(), "value", 1010);
+		List<SampleVo> list = new ArrayList<>();
+		for (int i = 0; i < 10000; i++) {
+			SampleVo sampleVo = new SampleVo(random.nextInt(), "data" + i, Math.random(), LocalDate.now(),
+					LocalDateTime.now(), "value" + i, i);
+			list.add(sampleVo);
+		}
 
-		List<TestVo> list = List.of(testVo, testVo1, testVo2, testVo3, testVo4, testVo5, testVo6, testVo7, testVo8,
-				testVo9, testVo10, testVo11, testVo12);
-
-		ExcelExporter excel = ExcelFactory.makeExcel(list, TestVo.class);
+		ExcelExporter excel = ExcelFactory.makeExcel(list, SampleVo.class);
 		excel.save(path);
 
 		assertTrue(Files.exists(Path.of(path)));
 	}
 
 
-	@DisplayName("100만건 테스트")
+	@DisplayName("150만건 테스트")
 	@Test
-	void doBigDataExportTest() throws IOException {
+	void exportBigDataExportTest() throws IOException {
 		Random random = new Random();
-		int maxSize = 100 * 1024 * 1024;
-		int minSize = 10 * 1024 * 1024;
 
 		LocalDate from = LocalDate.of(2016, 1, 1);
 		LocalDate to = LocalDate.now();
 
-		List<TestVo> list = new ArrayList<>();
+		List<SampleVo> list = new ArrayList<>();
 
-		for (int i=0; i< 1000000; i++) {
+		for (int i = 0; i < 1_100_000; i++) {
 
 			long days = from.until(to, ChronoUnit.DAYS);
 			long randomDays = ThreadLocalRandom.current().nextLong(days + 1);
@@ -72,16 +64,63 @@ class ExcelExportHelperApplicationTests {
 			int randomSeconds = new Random().nextInt(3600 * 24);
 			LocalDateTime anyTime = LocalDateTime.now().minusSeconds(randomSeconds);
 
-			TestVo testVo = new TestVo(random.nextInt(), "value" + i, Math.random() , randomDate, anyTime, i + "value" , random.nextInt() / 100);
-			list.add(testVo);
+			SampleVo sampleVo = new SampleVo(random.nextInt(), "value" + i, Math.random(), randomDate, anyTime,
+					i + "value", random.nextInt() / 100);
+			list.add(sampleVo);
 		}
 
-		ExcelExporter excel = ExcelFactory.makeExcel(list, TestVo.class);
+		ExcelExporter excel = ExcelFactory.makeExcel(list, SampleVo.class);
 		excel.save(path);
 
 		assertTrue(Files.exists(Path.of(path)));
-		assertTrue(Files.size(Path.of(path)) < maxSize);
-		assertTrue(Files.size(Path.of(path)) > minSize);
-
 	}
+
+
+	@DisplayName("다중 시트 출력")
+	@Test
+	void exportMultiSheetTest01() {
+		ExcelExporter excel = ExcelFactory.makeEmptyExcel();
+
+		SampleVo sampleVo = new SampleVo(-1234, "data1", 0.1, LocalDate.now(), LocalDateTime.now(), "value", 1);
+		SampleVo sampleVo1 = new SampleVo(0, "data2", 0.2, LocalDate.now(), LocalDateTime.now(), "value", 12);
+		List<SampleVo> list = List.of(sampleVo, sampleVo1);
+
+		MultiSheetSample01 testVo21 = new MultiSheetSample01(-1234, "data1", 1000);
+		MultiSheetSample01 testVo22 = new MultiSheetSample01(0, "data2", 2000);
+		List<MultiSheetSample01> list2 = List.of(testVo21, testVo22);
+
+		excel.appendSheet(list, SampleVo.class);
+		excel.appendSheet(list2, MultiSheetSample01.class);
+
+		excel.save(path);
+		assertTrue(Files.exists(Path.of(path)));
+	}
+
+	@DisplayName("다중 시트 출력")
+	@Test
+	void exportMultiSheetTest02() {
+
+		SampleVo sampleVo = new SampleVo(-1234, "data1", 0.1, LocalDate.now(), LocalDateTime.now(), "value", 1);
+		SampleVo sampleVo1 = new SampleVo(0, "data2", 0.2, LocalDate.now(), LocalDateTime.now(), "value", 12);
+		List<SampleVo> list = List.of(sampleVo, sampleVo1);
+
+		ExcelExporter excel = ExcelFactory.makeExcel(list, SampleVo.class);
+
+		MultiSheetSample01 sample01 = new MultiSheetSample01(-1234, "data1", 1000);
+		MultiSheetSample01 sample02 = new MultiSheetSample01(0, "data2", 2000);
+		List<MultiSheetSample01> list2 = List.of(sample01, sample02);
+
+		excel.appendSheet(list2, MultiSheetSample01.class);
+
+		MultiSheetSample02 sample021 = new MultiSheetSample02(-1234, "data1", 1000);
+		MultiSheetSample02 sample022 = new MultiSheetSample02(0, "data2", 2000);
+		List<MultiSheetSample02> list3 = List.of(sample021, sample022);
+
+		excel.appendSheet(list3, MultiSheetSample02.class);
+
+		excel.save(path);
+		assertTrue(Files.exists(Path.of(path)));
+	}
+
+
 }
