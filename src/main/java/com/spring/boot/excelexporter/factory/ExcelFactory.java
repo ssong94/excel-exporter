@@ -1,7 +1,7 @@
 package com.spring.boot.excelexporter.factory;
 
 import com.spring.boot.excelexporter.container.ExcelExporter;
-import com.spring.boot.excelexporter.container.OneSheetExcel;
+import com.spring.boot.excelexporter.container.ExcelSheetCreator;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -13,11 +13,15 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public final class ExcelFactory {
 
 	public static <T> ExcelExporter makeExcel(List<T> data, Class<T> tClass) {
-		return OneSheetExcel.of(data, tClass, createWorkbook(true));
+		return ExcelSheetCreator.of(data, tClass, createWorkbook(true));
+	}
+
+	public static ExcelExporter makeEmptyExcel() {
+		return ExcelSheetCreator.from(createWorkbook(true));
 	}
 
 	public static <T> ExcelExporter makeExcelForXSSFWorkbook(List<T> data, Class<T> tClass) {
-		return OneSheetExcel.of(data, tClass, createXSSFWorkbook());
+		return ExcelSheetCreator.of(data, tClass, createXSSFWorkbook());
 	}
 
 
