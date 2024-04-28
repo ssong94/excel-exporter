@@ -1,4 +1,4 @@
-package com.spring.boot.excelexporter.test;
+package com.spring.boot.excelexporter.sample;
 
 import com.spring.boot.excelexporter.meta.ExcelBody;
 import com.spring.boot.excelexporter.meta.ExcelHeader;
@@ -16,7 +16,7 @@ import org.apache.poi.ss.usermodel.IndexedColors;
 
 @ExcelSheet(name = "시트명")
 @AllArgsConstructor
-public class TestVo {
+public class SampleVo {
 
 	@ExcelHeader(name = "number", order = 0)
 	@ExcelBody(order = 0, dataFormat = "0;[Red]-0")
