@@ -27,12 +27,12 @@ public abstract class Excel implements ExcelExporter {
 
 	private final static String CONTENT_TYPE = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
 	private final static String CONTENT_DISPOSITION = HttpHeaders.CONTENT_DISPOSITION;
-
-	protected final Workbook _workbook;
-	protected Sheet _sheet;
 	private CreationHelper createHelper;
 
-	abstract Sheet renderSheet(Workbook workbook, Class<?> clazz);
+	protected final Workbook workbook;
+	protected Sheet sheet;
+
+	abstract void renderSheet(Class<?> clazz);
 
 	abstract void renderHeader(int rowStartIndex);
 
@@ -40,7 +40,7 @@ public abstract class Excel implements ExcelExporter {
 
 
 	protected Excel(Workbook workbook) {
-		this._workbook = workbook;
+		this.workbook = workbook;
 	}
 
 	protected void mergeRegion(Sheet sheet, String region) {
@@ -81,14 +81,14 @@ public abstract class Excel implements ExcelExporter {
 
 	private void write(OutputStream outputStream) {
 		try (outputStream) {
-			_workbook.write(outputStream);
+			workbook.write(outputStream);
 		} catch (IOException ex) {
 			throw new RuntimeException("Failed Excel Export", ex);
 		} finally {
 			try {
-				_workbook.close();
-				if(_workbook instanceof SXSSFWorkbook) {
-					((SXSSFWorkbook) _workbook).dispose();
+				workbook.close();
+				if (workbook instanceof SXSSFWorkbook) {
+					((SXSSFWorkbook) workbook).dispose();
 				}
 			} catch (IOException e) {
 				log.error(e.getMessage());
@@ -97,8 +97,8 @@ public abstract class Excel implements ExcelExporter {
 	}
 
 	protected short formatPattern(String formatPattern) {
-		if(createHelper == null) {
-			createHelper = _workbook.getCreationHelper();
+		if (createHelper == null) {
+			createHelper = workbook.getCreationHelper();
 		}
 		DataFormat dataFormat = createHelper.createDataFormat();
 		return dataFormat.getFormat(formatPattern);

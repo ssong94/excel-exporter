@@ -18,7 +18,6 @@ import java.util.Map;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.util.StringUtils;
 
@@ -27,8 +26,8 @@ public class ExcelSheetCreator extends Excel {
 	private final Map<Field, CellStyle> headerFieldCellStyleMap;
 	private final Map<Field, CellStyle> bodyFieldCellStyleMap;
 
-	private static final int DRAW_MAX_ROW_LIMIT = 1_000_000; // https://rowzero.io/blog/excel-row-limit
-	private int currentRowCount = 0;
+	private static final int EXCEL_ROW_LIMIT = 1_000_000; // https://rowzero.io/blog/excel-row-limit
+	private int sheetDataCount = 0;
 
 
 	public static <T> ExcelSheetCreator of(List<T> data, Class<T> tClass, Workbook workbook) {
@@ -51,12 +50,12 @@ public class ExcelSheetCreator extends Excel {
 		Field[] fields = tClass.getDeclaredFields();
 		headerFieldCellStyleMap = createHeaderFieldStyleMap(fields, workbook);
 		bodyFieldCellStyleMap = createBodyFieldStyleMap(fields, workbook);
-		make(data, tClass);
+		renderSheetAndData(data, tClass);
 	}
 
-	private <T> void make(List<T> data, Class<T> tClass) {
-		_sheet = renderSheet(_workbook, tClass);
-		renderHeader( 0);
+	private <T> void renderSheetAndData(List<T> data, Class<T> tClass) {
+		renderSheet(tClass);
+		renderHeader(0);
 		renderBody(1, data, tClass);
 	}
 
@@ -71,7 +70,7 @@ public class ExcelSheetCreator extends Excel {
 	private Map<Field, CellStyle> createHeaderFieldStyleMap(Field[] fields, Workbook workbook) {
 		Map<Field, CellStyle> resultMap = new HashMap<>();
 		for (Field field : fields) {
-			if(field.isAnnotationPresent(ExcelHeader.class)) {
+			if (field.isAnnotationPresent(ExcelHeader.class)) {
 
 				ExcelHeader annotation = field.getAnnotation(ExcelHeader.class);
 
@@ -87,7 +86,7 @@ public class ExcelSheetCreator extends Excel {
 	private Map<Field, CellStyle> createBodyFieldStyleMap(Field[] fields, Workbook workbook) {
 		Map<Field, CellStyle> resultMap = new HashMap<>();
 		for (Field field : fields) {
-			if(field.isAnnotationPresent(ExcelBody.class)) {
+			if (field.isAnnotationPresent(ExcelBody.class)) {
 
 				ExcelBody annotation = field.getAnnotation(ExcelBody.class);
 
@@ -102,22 +101,19 @@ public class ExcelSheetCreator extends Excel {
 
 
 	@Override
-	Sheet renderSheet(Workbook workbook, Class<?> clazz) {
+	void renderSheet(Class<?> clazz) {
 		ExcelSheet excelSheet = clazz.getAnnotation(ExcelSheet.class);
-		Sheet sheet;
 		try {
 			sheet = workbook.createSheet(excelSheet.name());
 		} catch (IllegalArgumentException e) {
 			String sheetName = excelSheet.name() + " (" + workbook.getNumberOfSheets() + ")";
 			sheet = workbook.createSheet(sheetName);
 		}
-
-		return sheet;
 	}
 
 	@Override
 	void renderHeader(int startRowIndex) {
-		Row row = _sheet.createRow(startRowIndex);
+		Row row = sheet.createRow(startRowIndex);
 
 		headerFieldCellStyleMap.forEach((field, style) -> {
 			ExcelHeader header = field.getAnnotation(ExcelHeader.class);
@@ -131,7 +127,7 @@ public class ExcelSheetCreator extends Excel {
 //			}
 
 			int width = PoiUtil.calculateWidth(columnWidth);
-			_sheet.setColumnWidth(index, width);
+			sheet.setColumnWidth(index, width);
 
 			Cell cell = row.createCell(index);
 			cell.setCellStyle(style);
@@ -144,18 +140,20 @@ public class ExcelSheetCreator extends Excel {
 	@Override
 	<T> void renderBody(int startRowIndex, List<T> dataList, Class<T> tClass) {
 
-		if(dataList == null || dataList.isEmpty()) return;
+		if (dataList == null || dataList.isEmpty()) {
+			return;
+		}
 
 		for (T data : dataList) {
 
 			plusRowCount();
 
-			if(isMaxRowCount()) {
+			if (isMaxRowCount()) {
 				renderNextSheet(tClass);
 				startRowIndex = 1;
 			}
 
-			Row row = _sheet.createRow(startRowIndex++);
+			Row row = sheet.createRow(startRowIndex++);
 			drawBody(row, data);
 		}
 	}
@@ -178,7 +176,7 @@ public class ExcelSheetCreator extends Excel {
 				renderCellValue(cell, o);
 
 				String pattern = body.dataFormat();
-				if(StringUtils.hasText(pattern)) {
+				if (StringUtils.hasText(pattern)) {
 					short idx = formatPattern(pattern);
 					cellStyle.setDataFormat(idx);
 					cellStyle.setShrinkToFit(true);
@@ -192,11 +190,10 @@ public class ExcelSheetCreator extends Excel {
 
 	private void renderCellValue(Cell cell, Object object) {
 
-		if(object == null) {
+		if (object == null) {
 			cell.setCellValue("");
 			return;
 		}
-
 
 		switch (object) {
 			case String s -> cell.setCellValue((String) s);
@@ -207,32 +204,32 @@ public class ExcelSheetCreator extends Excel {
 			case LocalDateTime ldt -> cell.setCellValue((LocalDateTime) ldt);
 			case LocalDate ld -> cell.setCellValue((LocalDate) ld);
 			case Boolean b -> cell.setCellValue((Boolean) b);
-			default -> cell.setCellValue(String.valueOf(object) );
+			default -> cell.setCellValue(String.valueOf(object));
 		}
 
 	}
 
 	private <T> void renderNextSheet(Class<T> tClass) {
-		_sheet = renderSheet(_workbook, tClass);
+		renderSheet(tClass);
 		renderHeader(0);
 		initRowCount();
 	}
 
 
 	private void plusRowCount() {
-		currentRowCount++;
+		sheetDataCount++;
 	}
 
 	private void initRowCount() {
-		currentRowCount = 0;
+		sheetDataCount = 0;
 	}
 
 	private boolean isMaxRowCount() {
-		return currentRowCount > DRAW_MAX_ROW_LIMIT;
+		return sheetDataCount > EXCEL_ROW_LIMIT;
 	}
 
 	@Override
 	public <T> void appendSheet(List<T> data, Class<T> tClass) {
-		new ExcelSheetCreator(data, tClass, _workbook);
+		of(data, tClass, workbook);
 	}
 }
