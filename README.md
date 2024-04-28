@@ -11,7 +11,9 @@ Java 환경에서 익숙한 `@annotation` 기반으로 설정할 수 있도록 �
 
 또한, 대용량 데이터를 처리하기 위해 streaming 방식을 채택하여 빠르고 효율적인 결과를 출력합니다.
 
-현재는 단일 Sheet만 지원하지만, 편의성을 위해 다중 Sheet에 대한 지원도 고려하고 있습니다.
+편의성을 위해 다중 Sheet 생성도 지원합니다. (다양한 템플릿을 다룸)
+
+아래 사용 방법을 읽어주세요.
 
 
 ## 개발 환경
@@ -25,31 +27,89 @@ Java 환경에서 익숙한 `@annotation` 기반으로 설정할 수 있도록 �
 
 
 
-## 사용 방법
+## How to use
 
 ---
-1. save: 파일 경로 전달하면 상위 디렉터리까지 생성해서 파일을 저장합니다. (권한이 없다면 오류를 던질 수 있습니다.
-2. export: ServletResponse 객체와 다운로드 파일명을 인수로 전달하면 브라우저에 전달할 수 있습니다.
+### 호출
+
+사용 방법에 대해서는 아래 코드의 주석을 확인해 주세요.
+
+1. 기본 사용 방법
 ```java
 public class TestClass() {
 	void excelCreateTest(HttpServletResponse res) {
 		String path = "/directory/path/file.xlsx";
-		TestVo testVo = new TestVo(-1234, "data1", 0.1, LocalDate.now(), LocalDateTime.now(), "value", 1);
-		TestVo testVo1 = new TestVo(0, "data2", 0.2, LocalDate.now(), LocalDateTime.now(), "value", 12);
+		TestVo sampleVo = new TestVo(-1234, "data1", 0.1, LocalDate.now(), LocalDateTime.now(), "value", 1);
+		TestVo sampleVo1 = new TestVo(0, "data2", 0.2, LocalDate.now(), LocalDateTime.now(), "value", 12);
 
-		List<TestVo> list = List.of(testVo, testVo1);
+		List<TestVo> list = List.of(sampleVo, sampleVo1);
 
-		// 호출 방법
+		// 엑셀 생성하는 방법
 		ExcelExporter excel = ExcelFactory.makeExcel(list, TestVo.class);
+		
+		// 엑셀을 파일로 저장함
 		excel.save(path); 
-		// save or export 
+		
+		// response 객체를 던지면 브라우저에게 다운로드 할 수 있습니다.
 		excel.export(res, "다운로드 파일 명");
 
 		assertTrue(Files.exists(Path.of(path)));
 	}
 }
 ```
+2. 다중 시트 출력
+```java
+@DisplayName("다중 시트 출력")
+@Test
+void exportMultiSheetTest01() {
+	// 비어있는 엑셀을 생성합니다.
+	ExcelExporter excel = ExcelFactory.makeEmptyExcel();
 
+	SampleVo sampleVo = new SampleVo(-1234, "data1", 0.1, LocalDate.now(), LocalDateTime.now(), "value", 1);
+	SampleVo sampleVo1 = new SampleVo(0, "data2", 0.2, LocalDate.now(), LocalDateTime.now(), "value", 12);
+	List<SampleVo> list = List.of(sampleVo, sampleVo1);
+
+	MultiSheetSample01 testVo21 = new MultiSheetSample01(-1234, "data1", 1000);
+	MultiSheetSample01 testVo22 = new MultiSheetSample01(0, "data2", 2000);
+	List<MultiSheetSample01> list2 = List.of(testVo21, testVo22);
+
+	// appendSheet 메서드를 연속적으로 호출하여 다양한 Sheet 결과를 출력할 수 있습니다.
+	excel.appendSheet(list, SampleVo.class); // Template A
+	excel.appendSheet(list2, MultiSheetSample01.class); // Template B
+
+	excel.save(path);
+	assertTrue(Files.exists(Path.of(path)));
+}
+
+@DisplayName("다중 시트 출력")
+@Test
+void exportMultiSheetTest02() {
+
+	SampleVo sampleVo = new SampleVo(-1234, "data1", 0.1, LocalDate.now(), LocalDateTime.now(), "value", 1);
+	SampleVo sampleVo1 = new SampleVo(0, "data2", 0.2, LocalDate.now(), LocalDateTime.now(), "value", 12);
+	List<SampleVo> list = List.of(sampleVo, sampleVo1);
+	
+	// 기본 방법으로 엑셀을 그려냅니다.
+	ExcelExporter excel = ExcelFactory.makeExcel(list, SampleVo.class);
+
+	MultiSheetSample01 sample01 = new MultiSheetSample01(-1234, "data1", 1000);
+	MultiSheetSample01 sample02 = new MultiSheetSample01(0, "data2", 2000);
+	List<MultiSheetSample01> list2 = List.of(sample01, sample02);
+
+	// 중간중간 appendSheet 메서드를 호출할 수 있습니다.
+	excel.appendSheet(list2, MultiSheetSample01.class);
+
+	MultiSheetSample02 sample021 = new MultiSheetSample02(-1234, "data1", 1000);
+	MultiSheetSample02 sample022 = new MultiSheetSample02(0, "data2", 2000);
+	List<MultiSheetSample02> list3 = List.of(sample021, sample022);
+
+	// 중간중간 appendSheet 메서드를 호출할 수 있습니다.
+	excel.appendSheet(list3, MultiSheetSample02.class);
+
+	excel.save(path);
+	assertTrue(Files.exists(Path.of(path)));
+}
+```
 
 ### 객체 사용 방법
 
@@ -126,8 +186,8 @@ ex) 10.00f 값을 주면 고정 너비로 설정할 수 있습니다.
 ## Ver2. (예정)
 
 ---
-- [ ] MultiSheet 지원
-- [ ] 커스텀 함수 지원
+- [x] MultiSheet 지원
+- [ ] Field 데이터가 아닌 Getter를 통하여 데이터를 가져올지 고민중.
 
 
 
